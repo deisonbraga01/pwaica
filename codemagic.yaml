@@ -21,7 +21,7 @@ workflows:
         provisioning_profiles:
           - cm_profile_appicamedtec_appstore
         certificates:
-          - cm_certificate_apple_distribution
+          - cm_certificate_apple_distribution_v2
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
