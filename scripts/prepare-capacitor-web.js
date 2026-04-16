@@ -1,0 +1,117 @@
+/* eslint-disable no-console */
+const fs = require("fs");
+const path = require("path");
+
+const projectRoot = path.resolve(__dirname, "..");
+const webDir = path.join(projectRoot, "www");
+
+const itemsToCopy = [
+  "index.html",
+  "privacy.html",
+  "manifest.webmanifest",
+  "sw.js",
+  "assets",
+  "imgs",
+  "api"
+];
+
+function removeDirIfExists(dirPath) {
+  if (fs.existsSync(dirPath)) {
+    fs.rmSync(dirPath, { recursive: true, force: true });
+  }
+}
+
+function ensureDir(dirPath) {
+  fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function copyItem(itemName) {
+  const sourcePath = path.join(projectRoot, itemName);
+  const targetPath = path.join(webDir, itemName);
+
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Item não encontrado para cópia: ${itemName}`);
+  }
+
+  fs.cpSync(sourcePath, targetPath, {
+    recursive: true,
+    force: true
+  });
+}
+
+function writeOfflineFallbackPage() {
+  const offlinePath = path.join(webDir, "offline-ios.html");
+  const html = `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sem conexão | ICA Telemedicina Humana</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07191b;
+        --card: #0b2326;
+        --border: rgba(78, 149, 144, 0.28);
+        --text: #e4f7f5;
+        --muted: #9bc2bf;
+        --accent: #1e9b92;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #103f44 0, #0a2529 45%, #061519 100%);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: 100%;
+        max-width: 520px;
+        border-radius: 20px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 20px;
+      }
+      h1 { margin: 0 0 8px; font-size: 22px; }
+      p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+      button {
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #1fad9f, #0f7a73);
+        color: #ecffff;
+        padding: 12px 16px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Sem conexão com a internet</h1>
+      <p>Não foi possível carregar o atendimento agora. Verifique sua conexão e tente novamente.</p>
+      <button type="button" onclick="window.location.href='https://icamedtec.com.br/app/'">Tentar novamente</button>
+    </main>
+  </body>
+</html>
+`;
+
+  fs.writeFileSync(offlinePath, html, "utf8");
+}
+
+function main() {
+  removeDirIfExists(webDir);
+  ensureDir(webDir);
+
+  for (const item of itemsToCopy) {
+    copyItem(item);
+  }
+
+  writeOfflineFallbackPage();
+  console.log("www preparado para Capacitor com fallback offline.");
+}
+
+main();

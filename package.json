@@ -1,0 +1,21 @@
+{
+  "name": "appicamedtec",
+  "version": "1.0.0",
+  "description": "Wrapper iOS (Capacitor) da PWA ICA Telemedicina Humana.",
+  "main": "sw.js",
+  "scripts": {
+    "prepare:web": "node scripts/prepare-capacitor-web.js",
+    "cap:sync:ios": "npm run prepare:web && npx cap sync ios",
+    "cap:open:ios": "npx cap open ios",
+    "test": "echo \"Sem testes automatizados configurados\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/browser": "^8.0.3",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/ios": "^8.3.0"
+  }
+}

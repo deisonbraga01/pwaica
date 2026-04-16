@@ -1,0 +1,20 @@
+{
+  "appId": "br.com.icamedtec.telemedicinahumana",
+  "appName": "ICA Telemedicina Humana",
+  "webDir": "www",
+  "backgroundColor": "#07191b",
+  "server": {
+    "url": "https://icamedtec.com.br/app/",
+    "cleartext": false,
+    "allowNavigation": [
+      "icamedtec.com.br",
+      "*.icamedtec.com.br",
+      "telemedicina.icamedtec.com.br"
+    ]
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false,
+    "scrollEnabled": true
+  }
+}
