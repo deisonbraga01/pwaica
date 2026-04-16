@@ -12,14 +12,16 @@ workflows:
           include: true
           source: true
     integrations:
-      app_store_connect: APP_STORE_CONNECT_INTEGRATION_NAME
+      app_store_connect: Deison Braga
 
     environment:
       node: 20
       xcode: latest
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: br.com.icamedtec.telemedicinahumana
+        provisioning_profiles:
+          - cm_profile_appicamedtec_appstore
+        certificates:
+          - cm_certificate_apple_distribution
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
