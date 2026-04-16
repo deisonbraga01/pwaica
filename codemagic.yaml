@@ -15,7 +15,7 @@ workflows:
       app_store_connect: Deison Braga
 
     environment:
-      node: 20
+      node: 22
       xcode: latest
       ios_signing:
         provisioning_profiles:
