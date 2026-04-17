@@ -5,6 +5,7 @@
   "backgroundColor": "#07191b",
   "server": {
     "cleartext": false,
+    "errorPath": "offline-ios.html",
     "allowNavigation": [
       "icamedtec.com.br",
       "*.icamedtec.com.br",

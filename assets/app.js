@@ -227,6 +227,24 @@
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
+        const capacitor = window.Capacitor;
+        const isNative =
+          capacitor &&
+          typeof capacitor.isNativePlatform === "function" &&
+          capacitor.isNativePlatform();
+
+        if (isNative) {
+          navigator.serviceWorker
+            .getRegistrations()
+            .then((registrations) => {
+              registrations.forEach((registration) => {
+                registration.unregister().catch(() => {});
+              });
+            })
+            .catch(() => {});
+          return;
+        }
+
         navigator.serviceWorker
           .register("./sw.js")
           .catch(() => {
