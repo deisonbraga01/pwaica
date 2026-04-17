@@ -4,7 +4,6 @@
   "webDir": "www",
   "backgroundColor": "#07191b",
   "server": {
-    "url": "https://icamedtec.com.br/app/",
     "cleartext": false,
     "allowNavigation": [
       "icamedtec.com.br",

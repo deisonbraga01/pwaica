@@ -1,8 +1,8 @@
 {
   "id": "/app/",
-  "name": "ICA Med Tec - Telemedicina",
-  "short_name": "ICA Med Tec",
-  "description": "Acesso rapido e seguro a telemedicina ICA Med Tec por link magico.",
+  "name": "ICA Telemedicina Humana",
+  "short_name": "ICA Telemedicina",
+  "description": "Acesso rapido e seguro a telemedicina humana da ICA Med Tec por link seguro.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "/app/",

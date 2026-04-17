@@ -93,7 +93,7 @@ function writeOfflineFallbackPage() {
     <main class="card">
       <h1>Sem conexão com a internet</h1>
       <p>Não foi possível carregar o atendimento agora. Verifique sua conexão e tente novamente.</p>
-      <button type="button" onclick="window.location.href='https://icamedtec.com.br/app/'">Tentar novamente</button>
+      <button type="button" onclick="window.location.href='./index.html'">Tentar novamente</button>
     </main>
   </body>
 </html>

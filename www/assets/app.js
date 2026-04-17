@@ -1,6 +1,21 @@
 (() => {
   const APP_BASE_URL = "https://icamedtec.com.br/app";
   const API_URL = `${APP_BASE_URL}/api/login-patient.php`;
+  const REQUEST_TIMEOUT_MS = 15000;
+  async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const requestOptions = {
+        ...options,
+        signal: controller.signal
+      };
+      return await fetch(url, requestOptions);
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
 
   function onlyDigits(value) {
     return (value || "").replace(/\D+/g, "");
@@ -82,7 +97,7 @@
     setStatus("Gerando link de acesso, aguarde...", "success");
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetchWithTimeout(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -129,9 +144,15 @@
         );
       }
     } catch (error) {
+      const isTimeout = error instanceof DOMException && error.name === "AbortError";
       if (!navigator.onLine) {
         setStatus(
           "Você está offline. Conecte-se à internet e tente novamente.",
+          "error"
+        );
+      } else if (isTimeout) {
+        setStatus(
+          "A solicitação demorou mais do que o esperado. Tente novamente.",
           "error"
         );
       } else {
