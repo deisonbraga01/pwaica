@@ -3,25 +3,44 @@ import UIKit
 import WebKit
 
 final class MainViewController: CAPBridgeViewController {
+    private enum LaunchState {
+        static let retryRevealDelay: TimeInterval = 3.5
+        static let observerRetryDelay: TimeInterval = 0.2
+        static let maxObserverAttempts = 25
+    }
+
     private let launchFallbackView = LaunchFallbackView()
     private var estimatedProgressObserver: NSKeyValueObservation?
+    private var webViewObserverRetryWorkItem: DispatchWorkItem?
+    private var retryRevealWorkItem: DispatchWorkItem?
     private var isLaunchFallbackHidden = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
         installLaunchFallbackView()
-        observeInitialWebViewLoad()
+        view.backgroundColor = UIColor(red: 7 / 255, green: 25 / 255, blue: 27 / 255, alpha: 1)
+        scheduleWebViewObservation()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        scheduleWebViewObservation()
     }
 
     deinit {
         estimatedProgressObserver?.invalidate()
+        webViewObserverRetryWorkItem?.cancel()
+        retryRevealWorkItem?.cancel()
     }
 
     private func installLaunchFallbackView() {
         launchFallbackView.translatesAutoresizingMaskIntoConstraints = false
         launchFallbackView.onRetry = { [weak self] in
-            self?.launchFallbackView.prepareForRetry()
-            self?.loadWebView()
+            guard let self else { return }
+            self.launchFallbackView.prepareForRetry()
+            self.scheduleRetryReveal()
+            self.loadWebView()
+            self.scheduleWebViewObservation()
         }
 
         view.addSubview(launchFallbackView)
@@ -32,30 +51,77 @@ final class MainViewController: CAPBridgeViewController {
             launchFallbackView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) { [weak self] in
+        scheduleRetryReveal()
+    }
+
+    private func scheduleRetryReveal() {
+        retryRevealWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self, !self.isLaunchFallbackHidden else { return }
             self.launchFallbackView.showRetryState()
         }
+
+        retryRevealWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + LaunchState.retryRevealDelay,
+            execute: workItem
+        )
     }
 
-    private func observeInitialWebViewLoad() {
-        guard let webView else { return }
+    private func scheduleWebViewObservation(attempt: Int = 0) {
+        guard !isLaunchFallbackHidden else { return }
+
+        if attachWebViewObserverIfPossible() {
+            return
+        }
+
+        guard attempt < LaunchState.maxObserverAttempts else {
+            launchFallbackView.showRetryState()
+            return
+        }
+
+        webViewObserverRetryWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.scheduleWebViewObservation(attempt: attempt + 1)
+        }
+        webViewObserverRetryWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + LaunchState.observerRetryDelay,
+            execute: workItem
+        )
+    }
+
+    private func attachWebViewObserverIfPossible() -> Bool {
+        guard let webView else { return false }
+        guard estimatedProgressObserver == nil else {
+            evaluateLaunchState(for: webView)
+            return true
+        }
 
         estimatedProgressObserver = webView.observe(\.estimatedProgress, options: [.initial, .new]) { [weak self] observedWebView, _ in
-            guard let self else { return }
-            let hasLoadedInitialUrl = observedWebView.url != nil
-            let hasMeaningfulProgress = observedWebView.estimatedProgress >= 0.6
-            let finishedLoading = hasLoadedInitialUrl && !observedWebView.isLoading
+            self?.evaluateLaunchState(for: observedWebView)
+        }
 
-            if hasMeaningfulProgress || finishedLoading {
-                self.hideLaunchFallbackView()
-            }
+        evaluateLaunchState(for: webView)
+        return true
+    }
+
+    private func evaluateLaunchState(for webView: WKWebView) {
+        let hasLoadedInitialUrl = webView.url != nil
+        let hasMeaningfulProgress = webView.estimatedProgress >= 0.15
+        let finishedLoading = hasLoadedInitialUrl && !webView.isLoading
+
+        if hasMeaningfulProgress || finishedLoading {
+            hideLaunchFallbackView()
         }
     }
 
     private func hideLaunchFallbackView() {
         guard !isLaunchFallbackHidden else { return }
         isLaunchFallbackHidden = true
+        retryRevealWorkItem?.cancel()
+        webViewObserverRetryWorkItem?.cancel()
 
         UIView.animate(withDuration: 0.25, animations: {
             self.launchFallbackView.alpha = 0
